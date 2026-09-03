@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shelf Tag Generator (6 Pcs per A4)</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: #f4f4f9;
+      display: flex;
+      flex-direction: row;
+      min-height: 100vh;
+    }
+
+    /* LEFT SIDE CONTROL PANEL */
+    .controls-wrapper {
+      background: #fff;
+      padding: 25px;
+      box-shadow: 3px 0 12px rgba(0,0,0,0.12);
+      width: 480px;
+      min-width: 480px;
+      height: 100vh;
+      overflow-y: auto;
+      position: sticky;
+      top: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      z-index: 1000;
+      transition: transform 0.3s ease;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 3px solid #eef2f5;
+      padding-bottom: 10px;
+    }
+
+    .panel-title {
+      font-size: 22px;
+      font-weight: bold;
+      color: #1976d2;
+    }
+
+    /* Mobile Toggle FAB & Bar */
+    .mobile-toggle-btn {
+      display: none;
+      background: #1976d2;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .mobile-top-bar {
+      display: none;
+      width: 100%;
+      background: #fff;
+      padding: 12px 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Font & Element Controls Panel */
+    .font-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 16px;
+      border-radius: 8px;
+    }
+
+    .font-control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .font-control-group label {
+      font-size: 13px;
+      font-weight: bold;
+      color: #333;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .font-control-group input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 8px;
+      background: #cbd5e1;
+      border-radius: 5px;
+      outline: none;
+    }
+
+    .font-control-group input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #1976d2;
+      cursor: pointer;
+    }
+
+    /* Input Rows Container */
+    #inputRowsContainer {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .input-row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #fdfdfd;
+      border: 1.5px solid #d0d0d0;
+      padding: 14px;
+      border-radius: 8px;
+    }
+
+    .input-row input, .input-row select {
+      padding: 10px 12px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      outline: none;
+      width: 100%;
+      background: white;
+    }
+
+    .input-row-flex {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 12px 18px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-add { background-color: #2e7d32; color: white; flex: 1; font-size: 16px; }
+    .btn-add:hover { background-color: #1b5e20; }
+
+    .btn-remove { background-color: #c62828; color: white; padding: 10px 14px; font-size: 13px; }
+    .btn-remove:hover { background-color: #8e0000; }
+
+    .btn-generate { background-color: #0277bd; color: white; width: 100%; font-size: 18px; padding: 14px; }
+    .btn-generate:hover { background-color: #01579b; }
+
+    .btn-print { background-color: #d32f2f; color: white; font-size: 18px; width: 100%; padding: 14px; }
+    .btn-print:hover { background-color: #b71c1c; }
+
+    /* RIGHT SIDE PREVIEW PANEL */
+    .preview-wrapper {
+      flex: 1;
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: auto;
+      width: 100%;
+    }
+
+    .sheets-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      align-items: center;
+      transform: scale(1.05);
+      transform-origin: top center;
+    }
+
+    /* A4 Sheet Dimensions & Grid (2 columns x 3 rows = 6 pcs) */
+    .a4-page {
+      width: 210mm;
+      max-width: 100%;
+      height: 297mm;
+      background: white;
+      box-shadow: 0 0 15px rgba(0,0,0,0.2);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: repeat(3, 1fr);
+      gap: 4mm;
+      padding: 8mm;
+      page-break-after: always;
+    }
+
+    /* SHELF TAG DESIGN */
+    .shelf-card-wrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .shelf-card {
+      width: 103%;
+      height: 75mm;
+      border: 2px solid #000;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Top Header Bar */
+    .shelf-header {
+      height: 24mm;
+      border-bottom: 2px solid #000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+    }
+
+    .shelf-logo-img {
+      max-height: 16mm;
+      max-width: 30mm;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+    }
+
+    .shelf-company-info {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .shelf-arabic-company {
+      font-size: 16px;
+      font-weight: 900;
+      direction: rtl;
+      color: #000;
+      line-height: 1.2;
+    }
+
+    .shelf-english-company {
+      font-size: 12px;
+      font-weight: 800;
+      color: #000;
+      letter-spacing: 0.5px;
+    }
+
+    /* Middle Text Box */
+    .shelf-middle {
+      height: 25mm;
+      border-bottom: 2px solid #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 0 8px;
+      text-align: center;
+      position: relative;
+    }
+
+    .shelf-title-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .shelf-country-flag {
+      position: relative;
+      top: -2px;
+      height: 32px;
+      width: auto;
+      object-fit: contain;
+      border: 1px solid #ccc;
+      border-radius: 2px;
+    }
+
+    .shelf-arabic-title {
+      font-size: 20px;
+      font-weight: bold;
+      direction: rtl;
+      color: #000;
+      line-height: 1.2;
+    }
+
+    .shelf-english-title {
+      font-size: 17px;
+      font-weight: 900;
+      color: #000;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-top: 2px;
+    }
+
+    /* Bottom Price & Weight Box */
+    .shelf-bottom {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 15px;
+    }
+
+    .shelf-price-box {
+      display: flex;
+      align-items: baseline;
+      color: #d32f2f;
+    }
+
+    .shelf-symbol-custom {
+      position: relative;
+      display: inline-block;
+      font-size: 44px;
+      font-weight: 900;
+      font-family: 'Times New Roman', Georgia, serif;
+      margin-right: 12px;
+      line-height: 1;
+      color: #000;
+    }
+
+    .shelf-symbol-custom::before,
+    .shelf-symbol-custom::after {
+      content: '';
+      position: absolute;
+      left: -4px;
+      width: 100%;
+      height: 3px;
+      background-color: #000;
+    }
+
+    .shelf-symbol-custom::before { top: 38%; }
+    .shelf-symbol-custom::after { top: 58%; }
+
+    .shelf-price-main {
+      font-size: 72px;
+      font-weight: 900;
+      line-height: 1;
+      color: #d32f2f;
+    }
+
+    .shelf-price-decimal {
+      font-size: 42px;
+      font-weight: 900;
+      line-height: 1;
+      color: #d32f2f;
+    }
+
+    .shelf-unit-text {
+      font-size: 22px;
+      font-weight: 900;
+      margin-top: 60px;
+      color: #000;
+      margin-left: 10px;
+    }
+
+    /* Quick Duplicate Action Button */
+    .banner-actions {
+      position: absolute;
+      right: -15px;
+      top: -10px;
+      z-index: 10;
+    }
+
+    .btn-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: none;
+      background-color: #1976d2;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+    }
+
+    /* MOBILE RESPONSIVE MEDIA QUERIES */
+    @media (max-width: 992px) {
+      body {
+        flex-direction: column;
+      }
+
+      .mobile-top-bar {
+        display: flex;
+      }
+
+      .controls-wrapper {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        min-width: 100%;
+        height: 100vh;
+        transform: translateY(-100%);
+        box-shadow: none;
+      }
+
+      .controls-wrapper.open {
+        transform: translateY(0);
+      }
+
+      .mobile-toggle-btn {
+        display: block;
+      }
+
+      .preview-wrapper {
+        padding: 15px;
+      }
+
+      .sheets-wrapper {
+        transform: scale(0.45);
+        transform-origin: top center;
+        margin-bottom: -150mm;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .sheets-wrapper {
+        transform: scale(0.38);
+        margin-bottom: -170mm;
+      }
+    }
+
+    /* PRINT STYLES FOR A4 PRINTING */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+
+      body {
+        background: none;
+        display: block;
+        padding: 0;
+        margin: 0;
+      }
+
+      .controls-wrapper, .banner-actions, .mobile-top-bar {
+        display: none !important;
+      }
+
+      .preview-wrapper { padding: 0; }
+      .sheets-wrapper { gap: 0; transform: scale(1) !important; margin-bottom: 0 !important; }
+
+      .a4-page {
+        box-shadow: none;
+        margin: 0;
+        width: 210mm;
+        height: 297mm;
+        padding: 8mm;
+        gap: 4mm;
+      }
+
+      .shelf-card { border: 2px solid #000; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- MOBILE NAVIGATION BAR -->
+  <div class="mobile-top-bar">
+    <span style="font-weight: bold; color: #1976d2;">Shelf Tag Generator</span>
+    <button class="mobile-toggle-btn" onclick="toggleControls()">⚙️ Edit Controls</button>
+  </div>
+
+  <!-- CONTROL PANEL -->
+  <div class="controls-wrapper" id="controlsWrapper">
+    <div class="panel-header">
+      <div class="panel-title">Shelf Tag Settings</div>
+      <button class="mobile-toggle-btn" onclick="toggleControls()">Done ✕</button>
+    </div>
+
+    <div class="font-controls">
+      <div class="font-control-group">
+        <label><span>Arabic Text Size</span> <span id="arabicSizeVal">20px</span></label>
+        <input type="range" id="arabicSizeSlider" min="10" max="32" value="20" oninput="updateFontSizes()">
+      </div>
+      <div class="font-control-group">
+        <label><span>English Name Size</span> <span id="englishSizeVal">17px</span></label>
+        <input type="range" id="englishSizeSlider" min="10" max="32" value="17" oninput="updateFontSizes()">
+      </div>
+      <div class="font-control-group">
+        <label><span>Main Price Size</span> <span id="priceSizeVal">72px</span></label>
+        <input type="range" id="priceSizeSlider" min="30" max="95" value="72" oninput="updateFontSizes()">
+      </div>
+      <div class="font-control-group">
+        <label><span>Price Decimals Size</span> <span id="decimalSizeVal">42px</span></label>
+        <input type="range" id="decimalSizeSlider" min="15" max="65" value="42" oninput="updateFontSizes()">
+      </div>
+      <div class="font-control-group">
+        <label><span>Flag Height Size</span> <span id="flagSizeVal">32px</span></label>
+        <input type="range" id="flagSizeSlider" min="15" max="60" value="32" oninput="updateFontSizes()">
+      </div>
+      <div class="font-control-group">
+        <label><span>Dirham Symbol Size</span> <span id="symbolSizeVal">44px</span></label>
+        <input type="range" id="symbolSizeSlider" min="20" max="75" value="44" oninput="updateFontSizes()">
+      </div>
+    </div>
+
+    <div id="inputRowsContainer">
+      <div class="input-row">
+        <input type="text" class="in-arabic" placeholder="Arabic Name" value="">
+        <input type="text" class="in-english" placeholder="English Name" value="">
+        <select class="in-country">
+          <!-- Populated by JavaScript -->
+        </select>
+        <div class="input-row-flex">
+          <input type="number" step="0.01" class="in-price" placeholder="Price" value="">
+          <input type="text" class="in-unit" placeholder="Unit/Weight" value="500 GM">
+          <button class="btn btn-remove" onclick="removeRow(this)">✕</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <button class="btn btn-add" onclick="addNewRow()">+ Add Item Row</button>
+      <button class="btn btn-generate" onclick="generateAndClose()">Update Preview</button>
+      <button class="btn btn-print" id="printBtn" onclick="window.print()">Print A4 Sheet</button>
+    </div>
+  </div>
+
+  <!-- PREVIEW PANEL -->
+  <div class="preview-wrapper">
+    <div class="sheets-wrapper" id="sheetsWrapper"></div>
+  </div>
+
+  <script>
+    const AUTO_LOGO_URL = 'images/imagesgrand.png';
+
+    const countries = [
+      { code: '', name: '-- Select Country Flag --' },
+      { code: 'af', name: 'Afghanistan (أفغانستان)' },
+      { code: 'al', name: 'Albania (ألبانيا)' },
+      { code: 'dz', name: 'Algeria (الجزائر)' },
+      { code: 'ad', name: 'Andorra (أندورا)' },
+      { code: 'ao', name: 'Angola (أنغولا)' },
+      { code: 'ag', name: 'Antigua and Barbuda (أنتيغوا وبربودا)' },
+      { code: 'ar', name: 'Argentina (الأرجنتين)' },
+      { code: 'am', name: 'Armenia (أرمينيا)' },
+      { code: 'au', name: 'Australia (أستراليا)' },
+      { code: 'at', name: 'Austria (النمسا)' },
+      { code: 'az', name: 'Azerbaijan (أذربيجان)' },
+      { code: 'bs', name: 'Bahamas (البهاماس)' },
+      { code: 'bh', name: 'Bahrain (البحرين)' },
+      { code: 'bd', name: 'Bangladesh (بنغلاديش)' },
+      { code: 'bb', name: 'Barbados (باربادوس)' },
+      { code: 'by', name: 'Belarus (بيلاروسيا)' },
+      { code: 'be', name: 'Belgium (بلجيكا)' },
+      { code: 'bz', name: 'Belize (بليز)' },
+      { code: 'bj', name: 'Benin (بنين)' },
+      { code: 'bt', name: 'Bhutan (بوتان)' },
+      { code: 'bo', name: 'Bolivia (بوليفيا)' },
+      { code: 'ba', name: 'Bosnia and Herzegovina (البوسنة والهرسك)' },
+      { code: 'bw', name: 'Botswana (بوتسوانا)' },
+      { code: 'br', name: 'Brazil (البرازيل)' },
+      { code: 'bn', name: 'Brunei (بروناي)' },
+      { code: 'bg', name: 'Bulgaria (بلغاريا)' },
+      { code: 'bf', name: 'Burkina Faso (بوركينا فاسو)' },
+      { code: 'bi', name: 'Burundi (بوروندي)' },
+      { code: 'cv', name: 'Cabo Verde (الرأس الأخضر)' },
+      { code: 'kh', name: 'Cambodia (كمبوديا)' },
+      { code: 'cm', name: 'Cameroon (الكاميرون)' },
+      { code: 'ca', name: 'Canada (كندا)' },
+      { code: 'cf', name: 'Central African Republic (جمهورية أفريقيا الوسطى)' },
+      { code: 'td', name: 'Chad (تشاد)' },
+      { code: 'cl', name: 'Chile (تشيلي)' },
+      { code: 'cn', name: 'China (الصين)' },
+      { code: 'co', name: 'Colombia (كولومبيا)' },
+      { code: 'km', name: 'Comoros (جزر القمر)' },
+      { code: 'cg', name: 'Congo (الكونغو)' },
+      { code: 'cd', name: 'DR Congo (الكونغو الديمقراطية)' },
+      { code: 'cr', name: 'Costa Rica (كوستاريكا)' },
+      { code: 'hr', name: 'Croatia (كرواتيا)' },
+      { code: 'cu', name: 'Cuba (كوبا)' },
+      { code: 'cy', name: 'Cyprus (قبرص)' },
+      { code: 'cz', name: 'Czech Republic (التشيك)' },
+      { code: 'dk', name: 'Denmark (الدنمارك)' },
+      { code: 'dj', name: 'Djibouti (جيبوتي)' },
+      { code: 'dm', name: 'Dominica (دومينيكا)' },
+      { code: 'do', name: 'Dominican Republic (جمهورية الدومينيكان)' },
+      { code: 'ec', name: 'Ecuador (الإكوادور)' },
+      { code: 'eg', name: 'Egypt (مصر)' },
+      { code: 'sv', name: 'El Salvador (السلفادور)' },
+      { code: 'gq', name: 'Equatorial Guinea (غينيا الاستوائية)' },
+      { code: 'er', name: 'Eritrea (إريتريا)' },
+      { code: 'ee', name: 'Estonia (إستونيا)' },
+      { code: 'sz', name: 'Eswatini (إسواتيني)' },
+      { code: 'et', name: 'Ethiopia (إثيوبيا)' },
+      { code: 'fj', name: 'Fiji (فيجي)' },
+      { code: 'fi', name: 'Finland (فنلندا)' },
+      { code: 'fr', name: 'France (فرنسا)' },
+      { code: 'ga', name: 'Gabon (الغابون)' },
+      { code: 'gm', name: 'Gambia (غامبيا)' },
+      { code: 'ge', name: 'Georgia (جورجيا)' },
+      { code: 'de', name: 'Germany (ألمانيا)' },
+      { code: 'gh', name: 'Ghana (غانا)' },
+      { code: 'gr', name: 'Greece (اليونان)' },
+      { code: 'gd', name: 'Grenada (غرينادا)' },
+      { code: 'gt', name: 'Guatemala (غواتيمالا)' },
+      { code: 'gn', name: 'Guinea (غينيا)' },
+      { code: 'gw', name: 'Guinea-Bissau (غينيا بيساو)' },
+      { code: 'gy', name: 'Guyana (غيانا)' },
+      { code: 'ht', name: 'Haiti (هايتي)' },
+      { code: 'hn', name: 'Honduras (هندوراس)' },
+      { code: 'hu', name: 'Hungary (المجر)' },
+      { code: 'is', name: 'Iceland (آيسلندا)' },
+      { code: 'in', name: 'India (الهند)' },
+      { code: 'id', name: 'Indonesia (إندونيسيا)' },
+      { code: 'ir', name: 'Iran (إيران)' },
+      { code: 'iq', name: 'Iraq (العراق)' },
+      { code: 'ie', name: 'Ireland (أيرلندا)' },
+      { code: 'il', name: 'Israel (إسرائيل)' },
+      { code: 'it', name: 'Italy (إيطاليا)' },
+      { code: 'ci', name: 'Ivory Coast (كوت ديفوار)' },
+      { code: 'jm', name: 'Jamaica (جاميكا)' },
+      { code: 'jp', name: 'Japan (اليابان)' },
+      { code: 'jo', name: 'Jordan (الأردن)' },
+      { code: 'kz', name: 'Kazakhstan (كازاخستان)' },
+      { code: 'ke', name: 'Kenya (كينيا)' },
+      { code: 'ki', name: 'Kiribati (كيريباتي)' },
+      { code: 'kp', name: 'North Korea (كوريا الشمالية)' },
+      { code: 'kr', name: 'South Korea (كوريا الجنوبية)' },
+      { code: 'kw', name: 'Kuwait (الكويت)' },
+      { code: 'kg', name: 'Kyrgyzstan (قيرغيزستان)' },
+      { code: 'la', name: 'Laos (لاوس)' },
+      { code: 'lv', name: 'Latvia (لاتفيا)' },
+      { code: 'lb', name: 'Lebanon (لبنان)' },
+      { code: 'ls', name: 'Lesotho (ليسوتو)' },
+      { code: 'lr', name: 'Liberia (ليبيريا)' },
+      { code: 'ly', name: 'Libya (ليبيا)' },
+      { code: 'li', name: 'Liechtenstein (ليختنشتاين)' },
+      { code: 'lt', name: 'Lithuania (ليتوانيا)' },
+      { code: 'lu', name: 'Luxembourg (لوكسمبورغ)' },
+      { code: 'mg', name: 'Madagascar (مدغشقر)' },
+      { code: 'mw', name: 'Malawi (مالاوي)' },
+      { code: 'my', name: 'Malaysia (ماليزيا)' },
+      { code: 'mv', name: 'Maldives (جزر المالديف)' },
+      { code: 'ml', name: 'Mali (مالي)' },
+      { code: 'mt', name: 'Malta (مالطا)' },
+      { code: 'mh', name: 'Marshall Islands (جزر مارشال)' },
+      { code: 'mr', name: 'Mauritania (موريتانيا)' },
+      { code: 'mu', name: 'Mauritius (موريشيوس)' },
+      { code: 'mx', name: 'Mexico (المكسيك)' },
+      { code: 'fm', name: 'Micronesia (ميكرونيزيا)' },
+      { code: 'md', name: 'Moldova (مولدوفا)' },
+      { code: 'mc', name: 'Monaco (موناكو)' },
+      { code: 'mn', name: 'Mongolia (منغوليا)' },
+      { code: 'me', name: 'Montenegro (الجبل الأسود)' },
+      { code: 'ma', name: 'Morocco (المغرب)' },
+      { code: 'mz', name: 'Mozambique (موزمبيق)' },
+      { code: 'mm', name: 'Myanmar (ميانمار)' },
+      { code: 'na', name: 'Namibia (ناميبيا)' },
+      { code: 'nr', name: 'Nauru (ناورو)' },
+      { code: 'np', name: 'Nepal (نيبال)' },
+      { code: 'nl', name: 'Netherlands (هولندا)' },
+      { code: 'nz', name: 'New Zealand (نيوزيلندا)' },
+      { code: 'ni', name: 'Nicaragua (نيكاراغوا)' },
+      { code: 'ne', name: 'Niger (النيجر)' },
+      { code: 'ng', name: 'Nigeria (نيجيريا)' },
+      { code: 'mk', name: 'North Macedonia (مقدونيا الشمالية)' },
+      { code: 'no', name: 'Norway (النرويج)' },
+      { code: 'om', name: 'Oman (عُمان)' },
+      { code: 'pk', name: 'Pakistan (باكستان)' },
+      { code: 'pw', name: 'Palau (بالاو)' },
+      { code: 'ps', name: 'Palestine (فلسطين)' },
+      { code: 'pa', name: 'Panama (بنما)' },
+      { code: 'pg', name: 'Papua New Guinea (بابوا غينيا الجديدة)' },
+      { code: 'py', name: 'Paraguay (باراغواي)' },
+      { code: 'pe', name: 'Peru (بيرو)' },
+      { code: 'ph', name: 'Philippines (الفلبين)' },
+      { code: 'pl', name: 'Poland (بولندا)' },
+      { code: 'pt', name: 'Portugal (البرتغال)' },
+      { code: 'qa', name: 'Qatar (قطر)' },
+      { code: 'ro', name: 'Romania (رومانيا)' },
+      { code: 'ru', name: 'Russia (روسيا)' },
+      { code: 'rw', name: 'Rwanda (رواندا)' },
+      { code: 'kn', name: 'Saint Kitts and Nevis (سانت كيتس ونيفيس)' },
+      { code: 'lc', name: 'Saint Lucia (سانت لوسيا)' },
+      { code: 'vc', name: 'Saint Vincent (سانت فينسنت)' },
+      { code: 'ws', name: 'Samoa (ساموا)' },
+      { code: 'sm', name: 'San Marino (سان مارينو)' },
+      { code: 'st', name: 'Sao Tome and Principe (ساو تومي وبرينسيب)' },
+      { code: 'sa', name: 'Saudi Arabia (السعودية)' },
+      { code: 'sn', name: 'Senegal (السنغال)' },
+      { code: 'rs', name: 'Serbia (صربيا)' },
+      { code: 'sc', name: 'Seychelles (سيشل)' },
+      { code: 'sl', name: 'Sierra Leone (سيراليون)' },
+      { code: 'sg', name: 'Singapore (سنغافورة)' },
+      { code: 'sk', name: 'Slovakia (سلوفاكيا)' },
+      { code: 'si', name: 'Slovenia (سلوفينيا)' },
+      { code: 'sb', name: 'Solomon Islands (جزر سليمان)' },
+      { code: 'so', name: 'Somalia (الصومال)' },
+      { code: 'za', name: 'South Africa (جنوب أفريقيا)' },
+      { code: 'ss', name: 'South Sudan (جنوب السودان)' },
+      { code: 'es', name: 'Spain (إسبانيا)' },
+      { code: 'lk', name: 'Sri Lanka (سريلانكا)' },
+      { code: 'sd', name: 'Sudan (السودان)' },
+      { code: 'sr', name: 'Suriname (سورينام)' },
+      { code: 'se', name: 'Sweden (السويد)' },
+      { code: 'ch', name: 'Switzerland (سويسرا)' },
+      { code: 'sy', name: 'Syria (سوريا)' },
+      { code: 'tj', name: 'Tajikistan (طاجيكستان)' },
+      { code: 'tz', name: 'Tanzania (تنزانيا)' },
+      { code: 'th', name: 'Thailand (تايلاند)' },
+      { code: 'tl', name: 'Timor-Leste (تيمور الشرقية)' },
+      { code: 'tg', name: 'Togo (توغو)' },
+      { code: 'to', name: 'Tonga (تونغا)' },
+      { code: 'tt', name: 'Trinidad and Tobago (ترينيداد وتوباغو)' },
+      { code: 'tn', name: 'Tunisia (تونس)' },
+      { code: 'tr', name: 'Turkey (تركيا)' },
+      { code: 'tm', name: 'Turkmenistan (تركمانستان)' },
+      { code: 'tv', name: 'Tuvalu (توفالو)' },
+      { code: 'ug', name: 'Uganda (أوغندا)' },
+      { code: 'ua', name: 'Ukraine (أوكرانيا)' },
+      { code: 'ae', name: 'UAE (الإمارات)' },
+      { code: 'gb', name: 'UK (المملكة المتحدة)' },
+      { code: 'us', name: 'USA (أمريكا)' },
+      { code: 'uy', name: 'Uruguay (أوروغواي)' },
+      { code: 'uz', name: 'Uzbekistan (أوزبكستان)' },
+      { code: 'vu', name: 'Vanuatu (فانواتو)' },
+      { code: 'va', name: 'Vatican City (الفاتيكان)' },
+      { code: 've', name: 'Venezuela (فنزويلا)' },
+      { code: 'vn', name: 'Vietnam (فيتنام)' },
+      { code: 'ye', name: 'Yemen (اليمن)' },
+      { code: 'zm', name: 'Zambia (زامبيا)' },
+      { code: 'zw', name: 'Zimbabwe (زيمبابوي)' }
+    ];
+
+    function toggleControls() {
+      const wrapper = document.getElementById('controlsWrapper');
+      wrapper.classList.toggle('open');
+    }
+
+    function generateAndClose() {
+      generateTags();
+      if (window.innerWidth <= 992) {
+        toggleControls();
+      }
+    }
+
+    function buildCountryOptions(selectedCode = '') {
+      return countries.map(c => `<option value="${c.code}" ${c.code === selectedCode ? 'selected' : ''}>${c.name}</option>`).join('');
+    }
+
+    function updateFontSizes() {
+      const arabicSize = document.getElementById('arabicSizeSlider').value + 'px';
+      const englishSize = document.getElementById('englishSizeSlider').value + 'px';
+      const priceMainSize = document.getElementById('priceSizeSlider').value + 'px';
+      const priceDecimalSize = document.getElementById('decimalSizeSlider').value + 'px';
+      const flagSize = document.getElementById('flagSizeSlider').value + 'px';
+      const symbolSize = document.getElementById('symbolSizeSlider').value + 'px';
+
+      document.getElementById('arabicSizeVal').innerText = arabicSize;
+      document.getElementById('englishSizeVal').innerText = englishSize;
+      document.getElementById('priceSizeVal').innerText = priceMainSize;
+      document.getElementById('decimalSizeVal').innerText = priceDecimalSize;
+      document.getElementById('flagSizeVal').innerText = flagSize;
+      document.getElementById('symbolSizeVal').innerText = symbolSize;
+
+      document.querySelectorAll('.shelf-arabic-title').forEach(el => el.style.fontSize = arabicSize);
+      document.querySelectorAll('.shelf-english-title').forEach(el => el.style.fontSize = englishSize);
+      document.querySelectorAll('.shelf-price-main').forEach(el => el.style.fontSize = priceMainSize);
+      document.querySelectorAll('.shelf-price-decimal').forEach(el => el.style.fontSize = priceDecimalSize);
+      document.querySelectorAll('.shelf-country-flag').forEach(el => el.style.height = flagSize);
+      document.querySelectorAll('.shelf-symbol-custom').forEach(el => el.style.fontSize = symbolSize);
+    }
+
+    function addNewRow(arabic = '', english = '', price = '0.00', unit = '500 G', country = '', targetIndex = null) {
+      const container = document.getElementById('inputRowsContainer');
+      const row = document.createElement('div');
+      row.className = 'input-row';
+      row.innerHTML = `
+        <input type="text" class="in-arabic" placeholder="Arabic Name" value="${arabic}">
+        <input type="text" class="in-english" placeholder="English Name" value="${english}">
+        <select class="in-country">
+          ${buildCountryOptions(country)}
+        </select>
+        <div class="input-row-flex">
+          <input type="number" step="0.01" class="in-price" placeholder="Price" value="${price}">
+          <input type="text" class="in-unit" placeholder="Unit/Weight" value="${unit}">
+          <button class="btn btn-remove" onclick="removeRow(this)">✕</button>
+        </div>
+      `;
+
+      if (targetIndex !== null && container.children[targetIndex]) {
+        container.children[targetIndex].after(row);
+      } else {
+        container.appendChild(row);
+      }
+    }
+
+    function removeRow(btn) {
+      const rows = document.querySelectorAll('.input-row');
+      if (rows.length > 1) {
+        btn.closest('.input-row').remove();
+        generateTags();
+      }
+    }
+
+    function createShelfTagElement(arabic, english, price, unit, countryCode, index) {
+      const numPrice = parseFloat(price) || 0;
+      const parts = numPrice.toFixed(2).split('.');
+
+      const flagHTML = countryCode 
+        ? `<img src="https://flagcdn.com/w40/${countryCode.toLowerCase()}.png" class="shelf-country-flag" alt="Flag">` 
+        : '';
+
+      const wrapper = document.createElement('div');
+      wrapper.className = 'shelf-card-wrapper';
+
+      wrapper.innerHTML = `
+        <div class="shelf-card">
+          <div class="shelf-header">
+            <img src="${AUTO_LOGO_URL}" class="shelf-logo-img" alt="Logo" onerror="this.style.display='none'">
+            <div class="shelf-company-info">
+              <div class="shelf-arabic-company">جراند الإمارات للتسوق ذ.م.م.</div>
+              <div class="shelf-english-company">GRAND EMIRATES MARKET L.L.C </div>
+            </div>
+          </div>
+          <div class="shelf-middle">
+            <div class="shelf-title-container">
+              <div class="shelf-arabic-title">${arabic}</div>
+            </div>
+            <div class="shelf-title-container">
+              <div class="shelf-english-title">${english}</div>
+              ${flagHTML}
+            </div>
+          </div>
+          <div class="shelf-bottom">
+            <div class="shelf-price-box">
+              <span class="shelf-symbol-custom">D</span>
+              <span class="shelf-price-main">${parts[0]}</span>
+              <span class="shelf-price-decimal">.${parts[1]}</span>
+            </div>
+            <div class="shelf-unit-text">${unit}</div>
+          </div>
+        </div>
+        <div class="banner-actions">
+          <button class="btn-circle" title="Duplicate Tag" onclick="duplicateBanner(this, ${index})">+</button>
+        </div>
+      `;
+      return wrapper;
+    }
+
+    function duplicateBanner(btn, index) {
+      const row = document.querySelectorAll('.input-row')[index];
+      const arabic = row.querySelector('.in-arabic').value;
+      const english = row.querySelector('.in-english').value;
+      const country = row.querySelector('.in-country').value;
+      const price = row.querySelector('.in-price').value;
+      const unit = row.querySelector('.in-unit').value;
+
+      addNewRow(arabic, english, price, unit, country, index);
+      generateTags();
+    }
+
+    function generateTags() {
+      const sheetsWrapper = document.getElementById('sheetsWrapper');
+      sheetsWrapper.innerHTML = '';
+
+      const rows = document.querySelectorAll('.input-row');
+      let currentSheet = createNewA4Page();
+      sheetsWrapper.appendChild(currentSheet);
+
+      let tagCount = 0;
+
+      rows.forEach((row, index) => {
+        const arabic = row.querySelector('.in-arabic').value;
+        const english = row.querySelector('.in-english').value;
+        const country = row.querySelector('.in-country').value;
+        const price = row.querySelector('.in-price').value;
+        const unit = row.querySelector('.in-unit').value;
+
+        if (arabic || english) {
+          const element = createShelfTagElement(arabic, english, price, unit, country, index);
+
+          if (tagCount > 0 && tagCount % 6 === 0) {
+            currentSheet = createNewA4Page();
+            sheetsWrapper.appendChild(currentSheet);
+          }
+
+          currentSheet.appendChild(element);
+          tagCount++;
+        }
+      });
+
+      document.getElementById('printBtn').style.display = tagCount > 0 ? 'block' : 'none';
+      updateFontSizes();
+    }
+
+    function createNewA4Page() {
+      const page = document.createElement('div');
+      page.className = 'a4-page';
+      return page;
+    }
+
+    // Initialize first row dynamically
+    document.querySelector('.in-country').innerHTML = buildCountryOptions();
+    generateTags();
+  </script>
+</body>
+</html>
