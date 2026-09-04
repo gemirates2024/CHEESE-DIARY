@@ -281,30 +281,13 @@
       position: relative;
     }
 
-    .shelf-title-container {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      width: 100%;
-    }
-
-    .shelf-country-flag {
-      position: relative;
-      top: -2px;
-      height: 32px;
-      width: auto;
-      object-fit: contain;
-      border: 1px solid #ccc;
-      border-radius: 2px;
-    }
-
     .shelf-arabic-title {
       font-size: 20px;
       font-weight: bold;
       direction: rtl;
       color: #000;
       line-height: 1.2;
+      width: 100%;
     }
 
     .shelf-english-title {
@@ -314,6 +297,28 @@
       text-transform: uppercase;
       letter-spacing: 0.8px;
       margin-top: 2px;
+      width: 100%;
+    }
+
+    /* INDEPENDENT FLAG CONTAINER */
+    .shelf-flag-container {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .shelf-country-flag {
+      height: 32px;
+      width: auto;
+      object-fit: contain;
+      border: 1px solid #ccc;
+      border-radius: 2px;
     }
 
     /* Bottom Price & Weight Box */
@@ -523,6 +528,10 @@
       <div class="font-control-group">
         <label><span>Flag Height Size</span> <span id="flagSizeVal">32px</span></label>
         <input type="range" id="flagSizeSlider" min="15" max="60" value="32" oninput="updateFontSizes()">
+      </div>
+      <div class="font-control-group">
+        <label><span>Flag Horizontal Position (Right Side)</span> <span id="flagPosVal">10px</span></label>
+        <input type="range" id="flagPosSlider" min="0" max="150" value="10" oninput="updateFontSizes()">
       </div>
       <div class="font-control-group">
         <label><span>Dirham Symbol Size</span> <span id="symbolSizeVal">44px</span></label>
@@ -781,6 +790,7 @@
       const priceMainSize = document.getElementById('priceSizeSlider').value + 'px';
       const priceDecimalSize = document.getElementById('decimalSizeSlider').value + 'px';
       const flagSize = document.getElementById('flagSizeSlider').value + 'px';
+      const flagPos = document.getElementById('flagPosSlider').value + 'px';
       const symbolSize = document.getElementById('symbolSizeSlider').value + 'px';
 
       document.getElementById('arabicSizeVal').innerText = arabicSize;
@@ -788,6 +798,7 @@
       document.getElementById('priceSizeVal').innerText = priceMainSize;
       document.getElementById('decimalSizeVal').innerText = priceDecimalSize;
       document.getElementById('flagSizeVal').innerText = flagSize;
+      document.getElementById('flagPosVal').innerText = flagPos;
       document.getElementById('symbolSizeVal').innerText = symbolSize;
 
       document.querySelectorAll('.shelf-arabic-title').forEach(el => el.style.fontSize = arabicSize);
@@ -795,6 +806,7 @@
       document.querySelectorAll('.shelf-price-main').forEach(el => el.style.fontSize = priceMainSize);
       document.querySelectorAll('.shelf-price-decimal').forEach(el => el.style.fontSize = priceDecimalSize);
       document.querySelectorAll('.shelf-country-flag').forEach(el => el.style.height = flagSize);
+      document.querySelectorAll('.shelf-flag-container').forEach(el => el.style.right = flagPos);
       document.querySelectorAll('.shelf-symbol-custom').forEach(el => el.style.fontSize = symbolSize);
     }
 
@@ -835,7 +847,7 @@
       const parts = numPrice.toFixed(2).split('.');
 
       const flagHTML = countryCode 
-        ? `<img src="https://flagcdn.com/w40/${countryCode.toLowerCase()}.png" class="shelf-country-flag" alt="Flag">` 
+        ? `<div class="shelf-flag-container"><img src="https://flagcdn.com/w40/${countryCode.toLowerCase()}.png" class="shelf-country-flag" alt="Flag"></div>` 
         : '';
 
       const wrapper = document.createElement('div');
@@ -851,13 +863,9 @@
             </div>
           </div>
           <div class="shelf-middle">
-            <div class="shelf-title-container">
-              <div class="shelf-arabic-title">${arabic}</div>
-            </div>
-            <div class="shelf-title-container">
-              <div class="shelf-english-title">${english}</div>
-              ${flagHTML}
-            </div>
+            <div class="shelf-arabic-title">${arabic}</div>
+            <div class="shelf-english-title">${english}</div>
+            ${flagHTML}
           </div>
           <div class="shelf-bottom">
             <div class="shelf-price-box">
