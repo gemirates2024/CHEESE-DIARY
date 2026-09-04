@@ -205,37 +205,43 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       grid-template-rows: repeat(3, 1fr);
-      gap: 4mm;
-      padding: 8mm;
+      gap: 2mm;
+      padding: 6mm;
       page-break-after: always;
     }
 
-    /* SHELF TAG DESIGN */
+    /* SHELF TAG DESIGN WITH FIXED SIZING FIXES */
     .shelf-card-wrapper {
       position: relative;
       width: 100%;
-      height: 100%;
+      height: 75mm;
+      max-height: 75mm;
+      overflow: hidden;
     }
 
     .shelf-card {
-      width: 103%;
+      width: 100%;
       height: 75mm;
+      max-height: 75mm; /* Prevents vertical expansion */
       border: 2px solid #000;
       display: flex;
       flex-direction: column;
       background: #fff;
       position: relative;
       overflow: hidden;
+      box-sizing: border-box;
     }
 
     /* Top Header Bar */
     .shelf-header {
-      height: 24mm;
+      height: 22mm;
+      max-height: 22mm;
       border-bottom: 2px solid #000;
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0 10px;
+      flex-shrink: 0;
     }
 
     .shelf-logo-img {
@@ -268,17 +274,30 @@
       letter-spacing: 0.5px;
     }
 
-    /* Middle Text Box */
+    /* Middle Section Layout Fix */
     .shelf-middle {
-      height: 25mm;
+      height: 26mm;
+      max-height: 26mm;
       border-bottom: 2px solid #000;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2px 8px;
+      position: relative;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .shelf-text-container {
+      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 0 8px;
       text-align: center;
-      position: relative;
+      min-width: 0; /* Prevents flex item expansion */
+      height: 100%;
+      overflow: hidden;
     }
 
     .shelf-arabic-title {
@@ -286,30 +305,39 @@
       font-weight: bold;
       direction: rtl;
       color: #000;
-      line-height: 1.2;
+      line-height: 1.1;
       width: 100%;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      word-break: break-word;
     }
 
     .shelf-english-title {
-      font-size: 17px;
+      font-size: 15px;
       font-weight: 900;
       color: #000;
       text-transform: uppercase;
-      letter-spacing: 0.8px;
+      letter-spacing: 0.5px;
       margin-top: 2px;
+      line-height: 1.1;
       width: 100%;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      word-break: break-word;
     }
 
-    /* INDEPENDENT FLAG CONTAINER */
     .shelf-flag-container {
-      position: absolute;
-      right: 10px;
-      top: 50%;
-      transform: translateY(-50%);
       display: flex;
       align-items: center;
       justify-content: center;
-      pointer-events: none;
+      flex-shrink: 0;
+      margin-left: 6px;
       z-index: 5;
     }
 
@@ -323,11 +351,13 @@
 
     /* Bottom Price & Weight Box */
     .shelf-bottom {
-      flex: 1;
+      height: 27mm;
+      max-height: 27mm;
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0 15px;
+      flex-shrink: 0;
     }
 
     .shelf-price-box {
@@ -377,7 +407,6 @@
     .shelf-unit-text {
       font-size: 22px;
       font-weight: 900;
-      margin-top: 60px;
       color: #000;
       margin-left: 10px;
     }
@@ -385,8 +414,8 @@
     /* Quick Duplicate Action Button */
     .banner-actions {
       position: absolute;
-      right: -15px;
-      top: -10px;
+      right: -1px;
+      top: -1px;
       z-index: 10;
     }
 
@@ -514,8 +543,8 @@
         <input type="range" id="arabicSizeSlider" min="10" max="32" value="20" oninput="updateFontSizes()">
       </div>
       <div class="font-control-group">
-        <label><span>English Name Size</span> <span id="englishSizeVal">17px</span></label>
-        <input type="range" id="englishSizeSlider" min="10" max="32" value="17" oninput="updateFontSizes()">
+        <label><span>English Name Size</span> <span id="englishSizeVal">15px</span></label>
+        <input type="range" id="englishSizeSlider" min="10" max="32" value="15" oninput="updateFontSizes()">
       </div>
       <div class="font-control-group">
         <label><span>Main Price Size</span> <span id="priceSizeVal">72px</span></label>
@@ -530,8 +559,8 @@
         <input type="range" id="flagSizeSlider" min="15" max="60" value="32" oninput="updateFontSizes()">
       </div>
       <div class="font-control-group">
-        <label><span>Flag Horizontal Position (Right Side)</span> <span id="flagPosVal">10px</span></label>
-        <input type="range" id="flagPosSlider" min="0" max="150" value="10" oninput="updateFontSizes()">
+        <label><span>Flag Margin Right</span> <span id="flagPosVal">0px</span></label>
+        <input type="range" id="flagPosSlider" min="0" max="150" value="0" oninput="updateFontSizes()">
       </div>
       <div class="font-control-group">
         <label><span>Dirham Symbol Size</span> <span id="symbolSizeVal">44px</span></label>
@@ -806,7 +835,7 @@
       document.querySelectorAll('.shelf-price-main').forEach(el => el.style.fontSize = priceMainSize);
       document.querySelectorAll('.shelf-price-decimal').forEach(el => el.style.fontSize = priceDecimalSize);
       document.querySelectorAll('.shelf-country-flag').forEach(el => el.style.height = flagSize);
-      document.querySelectorAll('.shelf-flag-container').forEach(el => el.style.right = flagPos);
+      document.querySelectorAll('.shelf-flag-container').forEach(el => el.style.marginRight = flagPos);
       document.querySelectorAll('.shelf-symbol-custom').forEach(el => el.style.fontSize = symbolSize);
     }
 
@@ -863,8 +892,10 @@
             </div>
           </div>
           <div class="shelf-middle">
-            <div class="shelf-arabic-title">${arabic}</div>
-            <div class="shelf-english-title">${english}</div>
+            <div class="shelf-text-container">
+              <div class="shelf-arabic-title">${arabic}</div>
+              <div class="shelf-english-title">${english}</div>
+            </div>
             ${flagHTML}
           </div>
           <div class="shelf-bottom">
